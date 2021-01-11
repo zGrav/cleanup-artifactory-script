@@ -1,5 +1,6 @@
 import os
 import requests
+import time
 
 from sys import exit
 from datetime import timezone, datetime
@@ -7,7 +8,7 @@ from datetime import timezone, datetime
 ARTIFACTORY_DAY_LIMIT = int(os.getenv("ARTIFACTORY_DAY_LIMIT", 2))
 
 ARTIFACTORY_API_KEY = os.getenv("ARTIFACTORY_API_KEY", None)
-ARTIFACTORY_URL = os.getenv("ARTIFACTORY_URL", "REDACTED")
+ARTIFACTORY_URL = os.getenv("ARTIFACTORY_URL", "https://artstore.code.esl.systems/artifactory")
 ARTIFACTORY_DOCKER_REPO = os.getenv("ARTIFACTORY_DOCKER_REPO", "docker-registry")
 ARTIFACTORY_DOCKER_IMAGES = os.getenv("ARTIFACTORY_DOCKER_IMAGES", None)
 
@@ -36,6 +37,7 @@ for DOCKER_IMAGE in SPLIT_ARTIFACTORY_DOCKER_IMAGES:
     DOCKER_IMAGES_API_RESULT = DOCKER_IMAGES_API_REQUEST.json()["results"]
     print("DONE!")
 
+    PLAIN_REPO_INFO = []
     DOCKER_IMAGE_INFO = []
     oldPath = ""
     for result in DOCKER_IMAGES_API_RESULT:
@@ -53,6 +55,7 @@ for DOCKER_IMAGE in SPLIT_ARTIFACTORY_DOCKER_IMAGES:
         print()
         DOCKER_IMAGE_API_RESULT = DOCKER_IMAGE_API_REQUEST.json()
         DOCKER_IMAGE_INFO.append(DOCKER_IMAGE_API_RESULT)
+        PLAIN_REPO_INFO.append(result)
         oldPath = result['path']
         print("DONE!")
 
@@ -77,9 +80,13 @@ for DOCKER_IMAGE in SPLIT_ARTIFACTORY_DOCKER_IMAGES:
         print()
         for item in DOCKER_IMAGE_INFO:
             formattedUrl = str(item['uri']).rsplit('/', 1)[0].replace('/api/storage', '')
-        
-            dockerBuildTimestamp = int(item["properties"]['build.timestamp'][0])
-            buildDateUtc = datetime.utcfromtimestamp(dockerBuildTimestamp / 1000)
+
+            itemManifest = item["properties"]["docker.manifest"][0]
+
+            plainRepoCreatedDate = next((x["created"] for x in PLAIN_REPO_INFO if itemManifest in x["path"]), None)
+            plainRepoCreatedTimestamp = time.mktime(datetime.strptime(plainRepoCreatedDate, "%Y-%m-%dT%H:%M:%S.%fZ").timetuple())
+
+            buildDateUtc = datetime.utcfromtimestamp(plainRepoCreatedTimestamp)
             currentDateUtc = datetime.utcfromtimestamp(datetime.now(tz=timezone.utc).timestamp())
             dateDiff = currentDateUtc - buildDateUtc
 
