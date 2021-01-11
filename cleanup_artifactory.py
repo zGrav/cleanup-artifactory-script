@@ -39,6 +39,8 @@ for DOCKER_IMAGE in SPLIT_ARTIFACTORY_DOCKER_IMAGES:
     DOCKER_IMAGE_INFO = []
     oldPath = ""
     for result in DOCKER_IMAGES_API_RESULT:
+        if "_uploads" in result['path']:
+            continue
         if oldPath == result['path']:
             continue
         DOCKER_IMAGE_API_URL = '{}/api/storage/{}/{}/manifest.json?properties'.format(ARTIFACTORY_URL, ARTIFACTORY_DOCKER_REPO, result['path'])
