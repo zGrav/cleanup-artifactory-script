@@ -8,7 +8,7 @@ from datetime import timezone, datetime
 ARTIFACTORY_DAY_LIMIT = int(os.getenv("ARTIFACTORY_DAY_LIMIT", 2))
 
 ARTIFACTORY_API_KEY = os.getenv("ARTIFACTORY_API_KEY", None)
-ARTIFACTORY_URL = os.getenv("ARTIFACTORY_URL", "https://artstore.code.esl.systems/artifactory")
+ARTIFACTORY_URL = os.getenv("ARTIFACTORY_URL", "REDACTED")
 ARTIFACTORY_DOCKER_REPO = os.getenv("ARTIFACTORY_DOCKER_REPO", "docker-registry")
 ARTIFACTORY_DOCKER_IMAGES = os.getenv("ARTIFACTORY_DOCKER_IMAGES", None)
 
